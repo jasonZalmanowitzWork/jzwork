@@ -1,0 +1,28 @@
+site_name: "JZ's scripts and working files"
+site_url: "https://nutrien.github.io/"
+site_description: "If you didn't commit, you don't commit"
+repo_url: "https://github.com/jasonZalmanowitzWork/jzwork"
+
+theme:
+  name: shadcn
+  show_title: true
+  show_stargazers: false
+  pygments_style:
+        light: shadcn-light
+        dark: github-dark
+  icon: heroicons:rocket-launch
+  topbar_sections: false
+  show_datetime: true
+
+plugins:
+  - search
+  - excalidraw
+  - mkdocstrings
+
+markdown_extensions:
+  admonition:
+  footnotes:
+  extra:
+  pymdownx.blocks.details:
+  shadcn.extensions.iconify:
+  pymdownx.blocks.caption:
