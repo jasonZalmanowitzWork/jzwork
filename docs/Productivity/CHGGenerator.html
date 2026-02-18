@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Change Request Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --warn: #d29922;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --danger: #f85149;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  header {
+    width: 100%;
+    max-width: 820px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 820px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .card-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .card-body { padding: 20px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  input[type="text"], input[type="datetime-local"], textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus, input[type="datetime-local"]:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.5;
+  }
+
+  .prompt-wrap {
+    position: relative;
+  }
+
+  .prompt-wrap textarea {
+    padding-right: 100px;
+    min-height: 70px;
+  }
+
+  .generate-btn {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .generate-btn:hover { opacity: 0.85; }
+  .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent2); color: #000; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .badge-draft { background: rgba(210,153,34,0.15); color: var(--warn); }
+  .badge-ready { background: rgba(63,185,80,0.15); color: var(--accent2); }
+  .badge-submitted { background: rgba(88,166,255,0.15); color: var(--accent); }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--muted);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .config-toggle {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: auto;
+  }
+
+  .config-panel {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .config-panel.open { display: block; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    max-width: 320px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.25s;
+    z-index: 999;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { border-color: var(--accent2); }
+  .toast.error { border-color: var(--danger); }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  .preview-code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
+  }
+
+  select option { background: var(--surface2); }
+
+  .tag {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CR</div>
+  <div>
+    <h1>Change Request Generator</h1>
+    <p>AI-powered · ServiceNow integration</p>
+  </div>
+</header>
+
+<!-- Config Card -->
+<div class="card">
+  <div class="card-header">
+    <span class="dot" style="background:var(--warn)"></span>
+    ServiceNow Configuration
+    <button class="config-toggle" id="configToggle" onclick="toggleConfig()">▾ Show</button>
+  </div>
+  <div class="config-panel" id="configPanel">
+    <div class="field-row">
+      <div class="field">
+        <label>Instance URL</label>
+        <input type="text" id="snInstance" placeholder="https://yourinstance.service-now.com" />
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="snUser" placeholder="admin" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Password</label>
+        <input type="text" id="snPass" placeholder="••••••••" />
+      </div>
+      <div class="field">
+        <label>Assignment Group</label>
+        <input type="text" id="snGroup" placeholder="IT Change Management" />
+      </div>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:4px;">
+      Credentials are stored in memory only and never sent anywhere except your ServiceNow instance.
+    </p>
+  </div>
+</div>
+
+<!-- Prompt Card -->
+<div class="card">
+  <div class="card-header">
+    <span class="dot"></span>
+    Step 1 — Describe the Change
+  </div>
+  <div class="card-body">
+    <div class="field">
+      <label>Natural Language Prompt</label>
+      <div class="prompt-wrap">
+        <textarea id="userPrompt" placeholder='e.g. "Write me a change request for patching the production web servers to address CVE-2024-1234"'></textarea>
+        <button class="generate-btn" id="genBtn" onclick="generateCR()">Generate ✦</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule + Fields Card -->
+<div class="card" id="crCard" style="display:none">
+  <div class="card-header">
+    <span class="dot" style="background:var(--warn)"></span>
+    Step 2 — Review &amp; Schedule
+    <span class="status-badge badge-draft" id="statusBadge">Draft</span>
+  </div>
+  <div class="card-body">
+
+    <div class="field">
+      <label>Short Description</label>
+      <input type="text" id="crShortDesc" placeholder="Short description..." />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Change Type</label>
+        <select id="crType">
+          <option value="normal">Normal</option>
+          <option value="standard">Standard</option>
+          <option value="emergency">Emergency</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="crCategory">
+          <option value="Applications">Applications</option>
+          <option value="Cloud">Cloud</option>
+          <option value="Network">Network</option>
+          <option value="Software">Software</option>
+          <option value="Storage">Storage</option>
+          <option value="Security">Security</option>
+          <option value="Telecom">Telecom</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Description</label>
+      <textarea id="crDesc" style="min-height:110px;" placeholder="Full change description..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Justification / Business Reason</label>
+      <textarea id="crJustification" style="min-height:80px;" placeholder="Why is this change needed?"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Implementation Plan</label>
+      <textarea id="crPlan" style="min-height:80px;" placeholder="Step-by-step plan..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Backout Plan</label>
+      <textarea id="crBackout" style="min-height:70px;" placeholder="How to roll back if needed..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Risk &amp; Impact</label>
+      <textarea id="crRisk" style="min-height:70px;" placeholder="Risk assessment and potential impact..."></textarea>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="field-row">
+      <div class="field">
+        <label>Planned Start Date &amp; Time</label>
+        <input type="datetime-local" id="crStart" />
+      </div>
+      <div class="field">
+        <label>Planned End Date &amp; Time</label>
+        <input type="datetime-local" id="crEnd" />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Risk Level</label>
+        <select id="crRiskLevel">
+          <option value="low">Low</option>
+          <option value="moderate" selected>Moderate</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <select id="crPriority">
+          <option value="1">1 - Critical</option>
+          <option value="2">2 - High</option>
+          <option value="3" selected>3 - Moderate</option>
+          <option value="4">4 - Low</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider" />
+    <div class="field">
+      <label>Generated cURL Preview</label>
+      <p style="font-size:12px; color:var(--muted);">This is the exact request that will be sent to ServiceNow.</p>
+      <pre class="preview-code" id="curlPreview"></pre>
+      <button class="btn btn-secondary" style="margin-top:8px; font-size:12px; padding:6px 14px;" onclick="showCurl()">Show cURL</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitToSNOW()">Submit to ServiceNow ↗</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────
+function toggleConfig() {
+  const panel = document.getElementById('configPanel');
+  const btn = document.getElementById('configToggle');
+  panel.classList.toggle('open');
+  btn.textContent = panel.classList.contains('open') ? '▴ Hide' : '▾ Show';
+}
+
+// ── AI Generation ────────────────────────────────────
+async function generateCR() {
+  const prompt = document.getElementById('userPrompt').value.trim();
+  if (!prompt) { showToast('Please enter a prompt first.', 'error'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const crData = await callClaude(prompt);
+    populateFields(crData);
+    document.getElementById('crCard').style.display = 'block';
+    document.getElementById('crCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showToast('Change request generated!', 'success');
+  } catch (e) {
+    showToast('Generation failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate ✦';
+  }
+}
+
+async function callClaude(userPrompt) {
+  const systemPrompt = `You are an ITSM change management expert. When given a description of a change, generate a structured IT change request tailored specifically to the described change.
+Respond ONLY with a valid JSON object (no markdown, no extra text) with these exact fields:
+{
+  "short_description": "concise one-line title specific to the change",
+  "description": "detailed description of what this specific change involves, including the systems, components, or processes being changed",
+  "justification": "business justification specific to this change — why it is needed, what risk or gap it addresses",
+  "implementation_plan": "numbered step-by-step implementation plan specific to this change (at least 5 steps)",
+  "backout_plan": "specific rollback procedure if this change fails (at least 4 steps)",
+  "risk_impact": "specific risk assessment for this change — which systems/users could be affected, likelihood, and mitigations",
+  "change_type": "normal",
+  "risk_level": "low",
+  "priority": "3"
+}
+Make every field directly relevant to the described change. Do not use generic boilerplate.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try { const e = await response.json(); errMsg = e.error?.message || errMsg; } catch {}
+    throw new Error(errMsg);
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text;
+  try {
+    return JSON.parse(text.replace(/```json|```/g, '').trim());
+  } catch {
+    throw new Error('Could not parse AI response. Try again.');
+  }
+}
+
+function populateFields(data) {
+  document.getElementById('crShortDesc').value = data.short_description || '';
+  document.getElementById('crDesc').value = data.description || '';
+  document.getElementById('crJustification').value = data.justification || '';
+  document.getElementById('crPlan').value = data.implementation_plan || '';
+  document.getElementById('crBackout').value = data.backout_plan || '';
+  document.getElementById('crRisk').value = data.risk_impact || '';
+
+  if (data.change_type) document.getElementById('crType').value = data.change_type;
+  if (data.risk_level) document.getElementById('crRiskLevel').value = data.risk_level;
+  if (data.priority) document.getElementById('crPriority').value = data.priority;
+}
+
+// ── cURL Preview ─────────────────────────────────────
+function buildPayload() {
+  const toSNOWDate = (localDT) => {
+    if (!localDT) return '';
+    return new Date(localDT).toISOString().replace('T', ' ').substring(0, 19);
+  };
+
+  return {
+    short_description: document.getElementById('crShortDesc').value,
+    description: document.getElementById('crDesc').value,
+    justification: document.getElementById('crJustification').value,
+    implementation_plan: document.getElementById('crPlan').value,
+    backout_plan: document.getElementById('crBackout').value,
+    risk: document.getElementById('crRisk').value,
+    type: document.getElementById('crType').value,
+    risk_impact_analysis: document.getElementById('crRiskLevel').value,
+    priority: document.getElementById('crPriority').value,
+    start_date: toSNOWDate(document.getElementById('crStart').value),
+    end_date: toSNOWDate(document.getElementById('crEnd').value),
+    assignment_group: document.getElementById('snGroup').value || '',
+    category: document.getElementById('crCategory').value
+  };
+}
+
+function showCurl() {
+  const instance = document.getElementById('snInstance').value || 'https://yourinstance.service-now.com';
+  const user = document.getElementById('snUser').value || 'username';
+  const pass = document.getElementById('snPass').value || 'YOUR_PASSWORD';
+  const payload = buildPayload();
+
+  // Extract hostname for .netrc
+  let hostname = instance;
+  try { hostname = new URL(instance).hostname; } catch {}
+
+  // Remove any previous download links
+  document.querySelectorAll('.curl-download-link').forEach(el => el.remove());
+
+  // ── JSON payload download ──
+  const jsonBlob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const jsonA = document.createElement('a');
+  jsonA.className = 'btn btn-secondary curl-download-link';
+  jsonA.href = URL.createObjectURL(jsonBlob);
+  jsonA.download = 'change_request.json';
+  jsonA.style.cssText = 'display:inline-block; margin-top:8px; margin-right:8px; font-size:12px; padding:6px 14px; text-decoration:none;';
+  jsonA.textContent = '⬇ Download change_request.json';
+
+  // ── .netrc credential file download ──
+  const netrcContent = `machine ${hostname}\n  login ${user}\n  password ${pass}\n`;
+  const netrcBlob = new Blob([netrcContent], { type: 'text/plain' });
+  const netrcA = document.createElement('a');
+  netrcA.className = 'btn btn-secondary curl-download-link';
+  netrcA.href = URL.createObjectURL(netrcBlob);
+  netrcA.download = '.netrc';
+  netrcA.style.cssText = 'display:inline-block; margin-top:8px; margin-right:8px; font-size:12px; padding:6px 14px; text-decoration:none;';
+  netrcA.textContent = '⬇ Download .netrc';
+
+  const pre = document.getElementById('curlPreview');
+  pre.after(netrcA);
+  pre.after(jsonA);
+
+  const curl = `curl -X POST \\
+  "${instance}/api/now/table/change_request" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json" \\
+  --netrc-file .netrc \\
+  --data @change_request.json`;
+
+  pre.textContent = curl;
+  pre.style.display = 'block';
+}
+
+// ── Submit ────────────────────────────────────────────
+async function submitToSNOW() {
+  const instance = document.getElementById('snInstance').value.trim();
+  const user = document.getElementById('snUser').value.trim();
+  const pass = document.getElementById('snPass').value.trim();
+
+  if (!instance || !user || !pass) {
+    document.getElementById('configPanel').classList.add('open');
+    document.getElementById('configToggle').textContent = '▴ Hide';
+    showToast('Please fill in ServiceNow credentials first.', 'error');
+    return;
+  }
+
+  if (!document.getElementById('crStart').value || !document.getElementById('crEnd').value) {
+    showToast('Please set start and end dates before submitting.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    const payload = buildPayload();
+    const credentials = btoa(`${user}:${pass}`);
+
+    const response = await fetch(`${instance}/api/now/table/change_request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Basic ${credentials}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errText.substring(0, 100)}`);
+    }
+
+    const result = await response.json();
+    const crNumber = result.result?.number || 'CHG0000000';
+    const crSysId = result.result?.sys_id || '';
+
+    document.getElementById('statusBadge').className = 'status-badge badge-submitted';
+    document.getElementById('statusBadge').textContent = `Submitted · ${crNumber}`;
+    showToast(`✓ Change request ${crNumber} created successfully!`, 'success');
+
+    btn.textContent = `Submitted ✓ ${crNumber}`;
+  } catch (e) {
+    showToast('Submission failed: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Submit to ServiceNow ↗';
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('userPrompt').value = '';
+  document.getElementById('crCard').style.display = 'none';
+  document.getElementById('statusBadge').className = 'status-badge badge-draft';
+  document.getElementById('statusBadge').textContent = 'Draft';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').textContent = 'Submit to ServiceNow ↗';
+  document.getElementById('curlPreview').style.display = 'none';
+}
+
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast show ${type}`;
+  setTimeout(() => toast.classList.remove('show'), 4000);
+}
+</script>
+</body>
+</html>
